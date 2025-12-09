@@ -1,99 +1,146 @@
 import React, { useState } from 'react';
-import { View, ScrollView, StyleSheet, Text, TouchableOpacity, Image, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, ScrollView, StyleSheet, Text, TouchableOpacity, Image, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { COLORS } from '../constants/colors';
+import { IMAGES } from '../constants/images';
+import TrackCard from '../components/TrackCard';
 import { ARTISTS } from '../data/artists';
+import { TRACKS } from '../data/tracks';
 import { useApp } from '../context/AppContext';
 
-export default function ChatScreen() {
+const formatNumber = (num: number) => {
+  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+  if (num >= 1000) return (num / 1000).toFixed(0) + 'K';
+  return num.toString();
+};
+
+export default function ArtistDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const { messages, sendMessage, user } = useApp();
-  const [text, setText] = useState('');
+  const { playTrack, following, toggleFollow, likedTracks, likeTrack, dislikeTrack, dislikedTracks } = useApp();
+  const [activeTab, setActiveTab] = useState<'tracks' | 'videos' | 'posts'>('tracks');
 
   const artist = ARTISTS.find(a => a.id === id);
-  const chatMessages = messages.filter(m => (m.senderId === id || m.receiverId === id));
-
-  const handleSend = () => {
-    if (text.trim() && artist) {
-      sendMessage(artist.id, text.trim());
-      setText('');
-    }
-  };
+  const artistTracks = TRACKS.filter(t => t.artistId === id);
+  const isFollowing = following.includes(id as string);
 
   if (!artist) {
     return <View style={styles.container}><Text style={styles.notFound}>Artist not found</Text></View>;
   }
 
+  const certImage = artist.certification !== 'none' ? IMAGES.awards[artist.certification] : null;
+
+  const handleFollow = () => {
+    toggleFollow(artist.id);
+    Alert.alert(isFollowing ? 'Unfollowed' : 'Following', isFollowing ? `You unfollowed ${artist.name}` : `You are now following ${artist.name}`);
+  };
+
+  const handleMessage = () => router.push(`/chat/${artist.id}`);
+  const handleSponsor = () => router.push('/sponsor');
+
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color={COLORS.textPrimary} />
-        </TouchableOpacity>
-        <Image source={{ uri: artist.image }} style={styles.avatar} />
-        <View style={styles.headerInfo}>
+    <View style={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <LinearGradient colors={[COLORS.primary, COLORS.background]} style={styles.header}>
+          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color={COLORS.textPrimary} />
+          </TouchableOpacity>
+          <Image source={{ uri: artist.image }} style={styles.avatar} />
           <View style={styles.nameRow}>
             <Text style={styles.name}>{artist.name}</Text>
-            {artist.verified && <Ionicons name="checkmark-circle" size={14} color={COLORS.primary} />}
+            {artist.verified && <Ionicons name="checkmark-circle" size={20} color={COLORS.primary} />}
+            {artist.isVIP && <Ionicons name="star" size={18} color={COLORS.gold} />}
           </View>
-          <Text style={styles.status}>Online</Text>
-        </View>
-        <TouchableOpacity style={styles.videoBtn} onPress={() => router.push(`/videochat?artistId=${artist.id}`)}>
-          <Ionicons name="videocam" size={22} color={COLORS.primary} />
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView style={styles.messageList} contentContainerStyle={styles.messageContent}>
-        {chatMessages.length === 0 ? (
-          <View style={styles.emptyChat}>
-            <Text style={styles.emptyChatText}>Start your conversation with {artist.name}</Text>
-          </View>
-        ) : (
-          chatMessages.map(msg => (
-            <View key={msg.id} style={[styles.messageBubble, msg.senderId === user?.id ? styles.sent : styles.received]}>
-              <Text style={styles.messageText}>{msg.text}</Text>
-              <Text style={styles.messageTime}>{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+          <Text style={styles.category}>{artist.category} • {artist.genre}</Text>
+          
+          {certImage && (
+            <View style={styles.certBadge}>
+              <Image source={{ uri: certImage }} style={styles.certImage} />
+              <Text style={styles.certText}>{artist.certification.toUpperCase()}</Text>
             </View>
-          ))
-        )}
-      </ScrollView>
+          )}
+          
+          <View style={styles.stats}>
+            <View style={styles.stat}><Text style={styles.statValue}>{formatNumber(artist.followers)}</Text><Text style={styles.statLabel}>Followers</Text></View>
+            <View style={styles.stat}><Text style={styles.statValue}>{formatNumber(artist.plays)}</Text><Text style={styles.statLabel}>Plays</Text></View>
+            <View style={styles.stat}><Text style={styles.statValue}>{formatNumber(artist.sales)}</Text><Text style={styles.statLabel}>Sales</Text></View>
+          </View>
+          
+          <View style={styles.actions}>
+            <TouchableOpacity style={[styles.followBtn, isFollowing && styles.followingBtn]} onPress={handleFollow}>
+              <Ionicons name={isFollowing ? 'checkmark' : 'person-add'} size={18} color={COLORS.textPrimary} />
+              <Text style={styles.followText}>{isFollowing ? 'Following' : 'Follow'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionBtn} onPress={handleMessage}>
+              <Ionicons name="chatbubble" size={18} color={COLORS.primary} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionBtn} onPress={handleSponsor}>
+              <Ionicons name="cash" size={18} color={COLORS.success} />
+            </TouchableOpacity>
+          </View>
+        </LinearGradient>
 
-      <View style={styles.inputContainer}>
-        <TouchableOpacity style={styles.attachBtn}>
-          <Ionicons name="add-circle" size={28} color={COLORS.primary} />
-        </TouchableOpacity>
-        <TextInput style={styles.input} placeholder="Type a message..." placeholderTextColor={COLORS.textMuted} value={text} onChangeText={setText} multiline />
-        <TouchableOpacity style={styles.sendBtn} onPress={handleSend}>
-          <Ionicons name="send" size={22} color={COLORS.textPrimary} />
-        </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+        <View style={styles.tabs}>
+          {(['tracks', 'videos', 'posts'] as const).map(tab => (
+            <TouchableOpacity key={tab} style={[styles.tab, activeTab === tab && styles.tabActive]} onPress={() => setActiveTab(tab)}>
+              <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>{tab.charAt(0).toUpperCase() + tab.slice(1)}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{activeTab === 'tracks' ? `Songs (${artistTracks.length}/20)` : activeTab === 'videos' ? 'Videos' : 'Posts & Reels'}</Text>
+          {activeTab === 'tracks' && artistTracks.map(track => (
+            <View key={track.id} style={styles.trackRow}>
+              <TrackCard track={track} onPress={() => playTrack(track)} />
+              <View style={styles.likeActions}>
+                <TouchableOpacity onPress={() => likeTrack(track.id)}>
+                  <Ionicons name={likedTracks.includes(track.id) ? 'thumbs-up' : 'thumbs-up-outline'} size={20} color={likedTracks.includes(track.id) ? COLORS.success : COLORS.textMuted} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => dislikeTrack(track.id)}>
+                  <Ionicons name={dislikedTracks.includes(track.id) ? 'thumbs-down' : 'thumbs-down-outline'} size={20} color={dislikedTracks.includes(track.id) ? COLORS.error : COLORS.textMuted} />
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))}
+          {activeTab !== 'tracks' && <Text style={styles.noContent}>No {activeTab} yet</Text>}
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  notFound: { color: COLORS.textMuted, textAlign: 'center', marginTop: 100 },
-  header: { flexDirection: 'row', alignItems: 'center', paddingTop: 60, paddingHorizontal: 20, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: COLORS.backgroundLight },
-  avatar: { width: 40, height: 40, borderRadius: 20, marginLeft: 12 },
-  headerInfo: { flex: 1, marginLeft: 12 },
-  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  name: { fontSize: 16, fontWeight: '600', color: COLORS.textPrimary },
-  status: { fontSize: 12, color: COLORS.success },
-  videoBtn: { padding: 8 },
-  messageList: { flex: 1 },
-  messageContent: { padding: 20 },
-  emptyChat: { alignItems: 'center', paddingTop: 40 },
-  emptyChatText: { color: COLORS.textMuted, fontSize: 14 },
-  messageBubble: { maxWidth: '80%', padding: 12, borderRadius: 16, marginBottom: 12 },
-  sent: { backgroundColor: COLORS.primary, alignSelf: 'flex-end', borderBottomRightRadius: 4 },
-  received: { backgroundColor: COLORS.backgroundCard, alignSelf: 'flex-start', borderBottomLeftRadius: 4 },
-  messageText: { color: COLORS.textPrimary, fontSize: 15 },
-  messageTime: { color: 'rgba(255,255,255,0.6)', fontSize: 10, marginTop: 4, alignSelf: 'flex-end' },
-  inputContainer: { flexDirection: 'row', alignItems: 'center', padding: 16, borderTopWidth: 1, borderTopColor: COLORS.backgroundLight },
-  attachBtn: { marginRight: 8 },
-  input: { flex: 1, backgroundColor: COLORS.backgroundCard, borderRadius: 20, paddingHorizontal: 16, paddingVertical: 10, color: COLORS.textPrimary, maxHeight: 100 },
-  sendBtn: { backgroundColor: COLORS.primary, width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', marginLeft: 8 },
+  notFound: { color: COLORS.textSecondary, textAlign: 'center', marginTop: 100 },
+  header: { paddingTop: 50, paddingBottom: 30, alignItems: 'center' },
+  backBtn: { position: 'absolute', top: 50, left: 20, padding: 8, backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 20 },
+  avatar: { width: 120, height: 120, borderRadius: 60, borderWidth: 4, borderColor: COLORS.textPrimary },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 16 },
+  name: { fontSize: 28, fontWeight: '800', color: COLORS.textPrimary },
+  category: { fontSize: 14, color: 'rgba(255,255,255,0.7)', marginTop: 4 },
+  certBadge: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(0,0,0,0.3)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, marginTop: 12 },
+  certImage: { width: 24, height: 24, borderRadius: 12 },
+  certText: { fontSize: 12, color: COLORS.gold, fontWeight: '700' },
+  stats: { flexDirection: 'row', gap: 40, marginTop: 20 },
+  stat: { alignItems: 'center' },
+  statValue: { fontSize: 20, fontWeight: '700', color: COLORS.textPrimary },
+  statLabel: { fontSize: 12, color: 'rgba(255,255,255,0.7)', marginTop: 2 },
+  actions: { flexDirection: 'row', gap: 12, marginTop: 20 },
+  followBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: COLORS.primary, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20 },
+  followingBtn: { backgroundColor: COLORS.success },
+  followText: { color: COLORS.textPrimary, fontWeight: '600' },
+  actionBtn: { backgroundColor: COLORS.backgroundCard, padding: 10, borderRadius: 20 },
+  tabs: { flexDirection: 'row', paddingHorizontal: 20, paddingTop: 16, gap: 12 },
+  tab: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 16, backgroundColor: COLORS.backgroundCard },
+  tabActive: { backgroundColor: COLORS.primary },
+  tabText: { color: COLORS.textMuted, fontWeight: '600' },
+  tabTextActive: { color: COLORS.textPrimary },
+  section: { padding: 20 },
+  sectionTitle: { fontSize: 18, fontWeight: '700', color: COLORS.textPrimary, marginBottom: 16 },
+  trackRow: { flexDirection: 'row', alignItems: 'center' },
+  likeActions: { flexDirection: 'row', gap: 12, marginLeft: 8 },
+  noContent: { color: COLORS.textMuted, textAlign: 'center', paddingVertical: 40 },
 });
