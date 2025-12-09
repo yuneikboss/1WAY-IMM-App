@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>1Way Music Prototype</title>
+  <!-- Basic styling to match the dark, neon‑accented look of the Figma prototype -->
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #000;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      padding-bottom: 80px; /* leave space for tab bar */
+    }
+    section.screen {
+      display: none;
+      animation: fade 0.2s ease-out;
+    }
+    section.screen.active {
+      display: block;
+    }
+    @keyframes fade {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    /* Bottom tab bar */
+    nav.tab-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 64px;
+      background: rgba(10, 10, 30, 0.96);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(16px);
+      display: flex;
+    }
+    nav.tab-bar button {
+      flex: 1;
+      border: none;
+      background: transparent;
+      color: #777;
+      font-size: 12px;
+      padding: 6px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+      transition: color 0.15s ease;
+    }
+    nav.tab-bar button.active {
+      color: #00c48c;
+    }
+    /* Simple icons using emoji for demonstration */
+    .icon {
+      font-size: 20px;
+    }
+    /* Sample content styling */
+    h1 {
+      margin-top: 0;
+      font-size: 24px;
+      font-weight: 600;
+    }
+    p, label {
+      font-size: 14px;
+      color: #888;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin: 4px 0;
+      border: 1px solid #333;
+      border-radius: 6px;
+      background: #111;
+      color: #fff;
+    }
+    button.primary {
+      display: block;
+      width: 100%;
+      margin: 8px 0;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      background: #00c48c;
+      color: #000;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button.primary:hover {
+      background: #00e09f;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <!-- Home Screen -->
+    <section id="home" class="screen active">
+      <h1>Home</h1>
+      <p>Discover trending music, videos and tours from the 1Way community.</p>
+      <h2>Trending Artists</h2>
+      <p>Top Artist – Atlanta</p>
+      <p>Rising Star – NYC</p>
+      <p>Hot Producer – LA</p>
+      <h2>Quick Links</h2>
+      <p>Billboard, Contest, Music, Tours, Videos, VIP, Radio, Blog</p>
+    </section>
+    <!-- Studio Screen -->
+    <section id="studio" class="screen">
+      <h1>Studio</h1>
+      <label for="demo-title">Demo title</label>
+      <input id="demo-title" type="text" placeholder="Name your demo" />
+      <label for="demo-price">Price (USD)</label>
+      <input id="demo-price" type="number" step="0.01" placeholder="1.99" />
+      <label>Microphone tier</label>
+      <select id="mic-tier">
+        <option value="5">Tier 5</option>
+        <option value="4">Tier 4</option>
+        <option value="3">Tier 3</option>
+        <option value="2">Tier 2</option>
+        <option value="1">Tier 1</option>
+      </select>
+      <button class="primary" onclick="alert('Record feature not implemented')">Start/Stop Recording</button>
+      <button class="primary" onclick="alert('Demo created!')">Make Demo</button>
+      <button class="primary" onclick="alert('Plan tour coming soon')">Plan Tour</button>
+    </section>
+    <!-- Money Screen -->
+    <section id="money" class="screen">
+      <h1>Money</h1>
+      <p>Your balance: <strong>$123.45</strong></p>
+      <label for="pay-user">Username</label>
+      <input id="pay-user" type="text" placeholder="@username" />
+      <label for="pay-amount">Amount (USD)</label>
+      <input id="pay-amount" type="number" step="0.01" placeholder="0.00" />
+      <button class="primary" onclick="alert('Money sent!')">Send Money</button>
+      <button class="primary" onclick="alert('Request sent!')">Request Money</button>
+      <button class="primary" onclick="alert('Sponsorship sent!')">Sponsor Artist</button>
+      <h2>Membership</h2>
+      <p>Activate membership for full access:</p>
+      <button class="primary" onclick="alert('Monthly membership activated')">Activate Monthly ($1)</button>
+      <button class="primary" onclick="alert('Annual membership activated')">Activate Annual ($9)</button>
+    </section>
+    <!-- Social Screen -->
+    <section id="social" class="screen">
+      <h1>Social</h1>
+      <p>Connect with artists and fans through chat, calls and live streams.</p>
+      <button class="primary" onclick="alert('Open messaging UI')">Open Messages</button>
+      <button class="primary" onclick="alert('Start audio call')">Start Audio Call</button>
+      <button class="primary" onclick="alert('Start video call')">Start Video Call</button>
+      <button class="primary" onclick="alert('Explore live streams')">Explore Live Streams</button>
+    </section>
+    <!-- Profile Screen -->
+    <section id="profile" class="screen">
+      <h1>Profile</h1>
+      <p><strong>Artist Name</strong></p>
+      <p>Atlanta, GA</p>
+      <p>1200 followers · 350 following</p>
+      <div style="display: flex; gap: 20px; margin: 12px 0;">
+        <div style="text-align:center"><strong>15k</strong><br/><small>Views</small></div>
+        <div style="text-align:center"><strong>4.2k</strong><br/><small>Likes</small></div>
+        <div style="text-align:center"><strong>#1</strong><br/><small>Rank</small></div>
+      </div>
+      <button class="primary" onclick="alert('View music')">My Music</button>
+      <button class="primary" onclick="alert('View videos')">My Videos</button>
+      <button class="primary" onclick="alert('View tours')">My Tours</button>
+      <button class="primary" onclick="alert('View freestyle')">My Free Styles</button>
+      <button class="primary" onclick="alert('View VIP passes')">VIP Passes</button>
+      <button class="primary" onclick="alert('View comments')">Comments</button>
+    </section>
+  </main>
+  <!-- Tab navigation bar -->
+  <nav class="tab-bar">
+    <button data-tab="home" class="active"><span class="icon">🏠</span><span>Home</span></button>
+    <button data-tab="studio"><span class="icon">🎤</span><span>Studio</span></button>
+    <button data-tab="money"><span class="icon">💸</span><span>Money</span></button>
+    <button data-tab="social"><span class="icon">👥</span><span>Social</span></button>
+    <button data-tab="profile"><span class="icon">👤</span><span>Profile</span></button>
+  </nav>
+  <script>
+    // Tab switching logic
+    const tabButtons = document.querySelectorAll('[data-tab]');
+    const screens = document.querySelectorAll('.screen');
+    function activateTab(tabId) {
+      // update buttons
+      tabButtons.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tabId);
+      });
+      // update screens
+      screens.forEach(section => {
+        section.classList.toggle('active', section.id === tabId);
+      });
+    }
+    tabButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = btn.dataset.tab;
+        activateTab(target);
+        // update URL hash for history/back support
+        history.pushState({ tab: target }, '', '#' + target);
+      });
+    });
+    // initial from hash
+    window.addEventListener('DOMContentLoaded', () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash) {
+        activateTab(hash);
+      }
+    });
+    // handle back/forward navigation
+    window.addEventListener('popstate', event => {
+      const stateTab = event.state && event.state.tab;
+      if (stateTab) {
+        activateTab(stateTab);
+      } else {
+        // fallback to hash
+        const current = window.location.hash.replace('#', '') || 'home';
+        activateTab(current);
+      }
+    });
+  </script>
+</body>
+</html>
